@@ -6,7 +6,7 @@
 <style type="text/css">
 #up {	
 	height: 5em;
-	width: 544px;
+	width: 181px;
 	background-color: transparent;
 	font-size: 80%;
 	font-weight: bold;
@@ -14,7 +14,7 @@
 }
 #down {	
 	height: 5em;
-	width: 544px;
+	width: 181px;
 	background-color: transparent;
 	font-size: 80%;
 	font-weight: bold;
@@ -33,6 +33,22 @@
 	height: 288px;
 	width: 145px;
 	background-color: transparent;
+	font-weight: bold;
+	color: #ffffff;
+}
+input.stepsize {	
+	height: 5em;
+	width: 100px;
+	background-color: transparent;
+	font-size: 80%;
+	font-weight: bold;
+	color: #ffffff;
+}
+input.up2 {	
+	height: 5em;
+	width: 177px;
+	background-color: transparent;
+	font-size: 80%;
 	font-weight: bold;
 	color: #ffffff;
 }
@@ -121,80 +137,79 @@ body {
 
 </style>
 
-<script src="http://192.168.42.1/jquery-1.11.0.min.js"></script>
+<script src="http://192.168.42.1/jquery-1.11.0.min.js"></script><!--make sure this .js file is in the folder with this php file-->
 <script>
-      var chasing = "n";
-      var chx = 277;
-      var chy = 144;
-      var mapping = "n";
-      var mapx =  "0";
-      var mapy = "0";
-      var dgear = "o";
+      var chasing = "n";           // sets default state as "not chasing anything"
+      var chx = 277;             // variables involved in chasing
+      var chy = 144;              // variables ivolved in chasing
+      var mapping = "n";             //sets default state as "not mapping"
+      var mapx =  "0";            // variables involved in mapping
+      var mapy = "0";              // variables involved in mapping
+      var dgear = "s";                // sets default gear as "none"
 
-      $(function(){
-       var ws;
-       var logger = function(msg){
-         var now = new Date();
-         var sec = now.getSeconds();
-         var min = now.getMinutes();
-         var hr = now.getHours();
+      $(function(){                     //main loop
+       var ws;                           // declare websocket
+       var logger = function(msg){                   // this function runs when a message comes in
+         var now = new Date();                 // gets date info from browser system
+         var sec = now.getSeconds();               //gets time info
+         var min = now.getMinutes();               //gets time info
+         var hr = now.getHours();                 // gets time info
 	 
-         $("#log").html($("#log").html() + "<br/>" + hr + ":" + min + ":" + sec + " " + msg  );
-	 $("#log").scrollTop($("#log")[0].scrollHeight);
-	 var h = "n";
+         $("#log").html($("#log").html() + "<br/>" + hr + ":" + min + ":" + sec + " " + msg  ); //displays message info (msg), date and time
+	 $("#log").scrollTop($("#log")[0].scrollHeight);             //scrolls down one line on the "message field"
+	 var h = "n";                   // h is the variable that will hold the first line of the incoming message
 
-	 packet = msg.toString();
-	 var res = packet.split("_", 4);
+	 packet = msg.toString();           // here we begin to break up the message into parts (parsing)
+	 var res = packet.split("_", 4);       //breaks up the packet of info into slices dvided by underscores(_)
 
-	 var h = res.slice(0,1);
+	 var h = res.slice(0,1);                //grabs the first slice and puts it into variable h
 
-	 var x = res.slice(1,2);
-	 var y = res.slice(2,3);
-	 var p = res.slice(3,4);
+	 var x = res.slice(1,2);                 //second slice - x position
+	 var y = res.slice(2,3);                  //third slice - y position
+	 var p = res.slice(3,4);                  //fourth slice - file number
 
 	 
-	 var xpos = parseInt(x);
-	 var ypos = parseInt(y);
+	 var xpos = parseInt(x);                       //turns variable x info into an integer
+	 var ypos = parseInt(y);                       //turns variable y info into an integer
 
 
-	 var c = document.getElementById("myCanvas");
-	 var ctx = c.getContext("2d");
-	 xpos = xpos * 20;
-	 ypos = -ypos * 20 ;
-	 var x2 = xpos + 20;
-	 var y2 = ypos + 20;
-	 var y3 = ypos + 35;
-	 var d = "d";
-	 var c2 = "c";
-	 var no = "n";
-	 var yes = "y";
-	 h = h.slice(0,1);
-	 var thp1 = "/images/thumbs/thumb";
-	 var thp2 = ".png";
-	 var thumbpath = thp1.concat(p,thp2);
+	 var c = document.getElementById("myCanvas"); // instanciates canvas as variable c for use in the javascript 
+	 var ctx = c.getContext("2d");                  // this line lets you deal with the canvas 2D layer
+	 xpos = xpos * 20;                       // new x position of new thumbnail on canvas
+	 ypos = -ypos * 20 ;                       // new y position of new thumbnail on canvas
+	 var x2 = xpos + 20;                         // new x position of new thumbnail on canvas
+	 var y2 = ypos + 20;                        // new y position of new thumbnail on canvas
+	 var y3 = ypos + 35;                        // position of numbering of thumbnail
+	 var d = "d";                      // variables we use to compare variables, this is completely unnecessary
+	 var c2 = "c";                    // variables we use to compare variables, this is completely unnecessary
+	 var no = "n";                   // variables we use to compare variables, this is completely unnecessary
+	 var yes = "y";                // variables we use to compare variables, this is completely unnecessary
+	 h = h.slice(0,1);                                   // gets slice 0, again?
+	 var thp1 = "/images/thumbs/thumb";                 // path to new thumb (address) - part one
+	 var thp2 = ".png";                             //path to new thumb - part three
+	 var thumbpath = thp1.concat(p,thp2);              // merges the parts of the path (concatonation)
          
-         $("#log").html($("#log").html() + "<br/>" + hr + ":" + min + ":" + sec + " " + mapping + ","+chy  );
-	 $("#log").scrollTop($("#log")[0].scrollHeight);
-	if (h == "m"){
-	 if (mapping == "y"){
-	    ws.send("b");
-	 } else if(mapping == "n"){
+         $("#log").html($("#log").html() + "<br/>" + hr + ":" + min + ":" + sec + " " + mapping + ","+chy  ); //message for message field
+	 $("#log").scrollTop($("#log")[0].scrollHeight); // bumps the message field down one line
+	if (h == "m"){             // if part one of the incoming message(h) is "m" then that means that we are mapping
+	 if (mapping == "y"){            // if "y" then we continue to map
+	    ws.send("b");            // send the letter "b" to the websocket(ws)- this requests that the mapping continue
+	 } else if(mapping == "n"){                  // if you press the stop button then the mapping will cease
 	 }
 	 }
-	 if (h == "d"){
-	  var imageObj = new Image();
-	  imageObj.onload = function(){
-	    ctx.drawImage(imageObj, xpos, ypos);
-	    ctx.fillStyle = "#ffffff";
-	    ctx.font="10px Arial";
-	
-	    ctx.fillText(p, xpos, y3);
+	 if (h == "d"){  // "d" declares that we are dropping a new thumb on the canvas
+	  var imageObj = new Image(); // load the thumb into a variable
+	  imageObj.onload = function(){  //waits for the thumb to load
+	    ctx.drawImage(imageObj, xpos, ypos);  // once loaded it is drawn
+	    ctx.fillStyle = "#ffffff";   // and then we draw the reference number next to it
+	    ctx.font="10px Arial"; //
+	    ctx.fillText(p, xpos, y3);  //
 	   };
-	  imageObj.src = thumbpath;
+	  imageObj.src = thumbpath; // part of the image loading script, not sure what it does but its necessary
 	  
 	 }
-	 if (x == "u"){
-           chy = chy - 5;
+	 if (x == "u"){   // if we are in chase mode, then x is the direction we have just moved
+           chy = chy - 5;   // edits the chase position
 		}	   
 	 if (x == "d"){
            chy = chy + 5;
@@ -212,11 +227,10 @@ body {
 
 		}
 
-	 if (chasing == "y"){
-	    ws.send("c");
-  	    ctx.fillStyle = "#ffffff";
+	 if (chasing == "y"){  // if we are in chasing mode 
+	    ws.send("c");  //send the signal to continue chasing
+  	    ctx.fillStyle = "#ffffff";  //draw an x onto the canvas to represent the motion of the chasing
 	    ctx.font="10px Arial";
-	
 	    ctx.fillText("x", chx, chy) ;
 	}
 	}
@@ -224,51 +238,49 @@ body {
 	
 	
 
-	var sender = function() {
+	var sender = function() {  // for sending a message from the manual input field
 	  var msg = $("#msg").val();
 	  if (msg.length > 0)
 	    ws.send(msg);
 	   $("#msg").val(msg);
 	}
 	
-	ws = new WebSocket("ws://192.168.42.1:8888/ws");
-	ws.onmessage = function(evt) {
+	ws = new WebSocket("ws://192.168.42.1:8888/ws"); //opens the message websocket at this port
+	ws.onmessage = function(evt) {  //socket event - message
 
 	  logger(evt.data);
 	};
-	ws.onclose = function(evt) {
+	ws.onclose = function(evt) {  //socket event - closed
 	    $("#log").text("Connection Closed");
 	    $("#thebutton #msg").prop('disabled', true);
 	};
-	ws.onopen = function(evt) { 
+	ws.onopen = function(evt) {    //socket event - open
 	   $("#log").text("OGP-- SOCKET OPEN"); 
 	   	  ws.send('n');
 	   
 	};
 
-	$("#msg").keypress(function(event) {
+	$("#msg").keypress(function(event) {  // manual message send button function
 	    if (event.which == 13) {
 	      sender();
 	    }
 	});
 
-	$("#up").click(function(){
-	 if (dgear == "n"){
+	$("#up").click(function(){   // the rest of these functions handle the buttons
+	 if (dgear == "n"){  // dgear is the directional gear "n" is nudge-gear
 	    
-	  ws.send('y');
+	  ws.send('y');  // sends serial trigger code "y" for nudge up
          }
-	 if (dgear == "m"){
+	 if (dgear == "m"){      // "m" is mapstep-gear
 	  ws.send('w');
 	 }    
-	 if (dgear == "o"){
+	 if (dgear == "o"){       // "o" is open-gear
 	  ws.send('7');
-
 	 }
 	 });
 
-	$("#down").click(function(){
+	$("#down").click(function(){   // another directional button
 	 if (dgear == "n"){
-	    
 	  ws.send('g');
          }
 	 if (dgear == "m"){
@@ -276,13 +288,11 @@ body {
 	 }    
 	 if (dgear == "o"){
 	  ws.send('9');
-
 	 }
 	});
 
-	$("#left").click(function(){
+	$("#left").click(function(){  // left directional button
 	 if (dgear == "n"){
-	    
 	  ws.send('h');
          }
 	 if (dgear == "m"){
@@ -290,11 +300,10 @@ body {
 	 }    
 	 if (dgear == "o"){
 	  ws.send('2');
-
 	 }
 	});
 
-	$("#right").click(function(){
+	$("#right").click(function(){   //right diestional button
 	 if (dgear == "n"){
 	    
 	  ws.send('j');
@@ -304,41 +313,36 @@ body {
 	 }    
 	 if (dgear == "o"){
 	  ws.send('4');
-	
 	 }
 	});
 
-	$("#in").click(function(){
+	$("#in").click(function(){  //focus buttons
 	    ws.send('f');
 	});
-
+	
 	$("#out").click(function(){
 	    ws.send('t');
 	});
 
-	$("#short").click(function(){
-	    
+	$("#short").click(function(){  //gear switch buttons
 	    dgear = "n";
-
-
 	});
 
 	$("#long").click(function(){	
-
-
-	  
 	    dgear = "m";
 	});
+	
 	$("#open").click(function(){
 
 	    dgear = "o";
 	});
-	$("#map").click(function(){
+	
+	$("#map").click(function(){   // new map(aka map reset) button
 	    ws.send('n');
 
 	});
 
-	$("#chase").click(function(){
+	$("#chase").click(function(){  //start chasing button -- with toggle
 	 var yes = "y";
 	 var no = "n";
 
@@ -354,7 +358,8 @@ body {
 	 
 	}
 	});
-	$("#map2").click(function(){
+	
+	$("#map2").click(function(){   // start mapping button -- with toggle
 	 var yes = "y";
 	 var no = "n";
 	 if (mapping == no){
@@ -364,31 +369,43 @@ body {
 	} else if (mapping == yes){
 	  mapping = no;
 	  ws.send('3');
-
-	 
 	}
 	});
 
 
-	$("#autocal").click(function(){
+	$("#autocal").click(function(){  // auto-calibrate button
 	    chasing = "n";
 	    mapping = "n";
 	    ws.send('k');
 	});
 
-	$("#allstop").click(function(){
-
+	$("#allstop").click(function(){   // all stop button
 	    chasing = "n";
 	    ws.send('3');
 	   var ch = 0;
 	});
 
-	$("#allstop2").click(function(){
-
+	$("#allstop2").click(function(){  // all stop button 2
 	    ws.send('8');
 	});
+	
+	$("#cam2").click(function(){   // set cam mode to 2
 
-	$("#mapsizea").click(function(){
+	    ws.send('c2');
+	});
+	$("#cam1").click(function(){  // set cam mode to 1
+
+	    ws.send('c1');
+	});
+	$("#cam4").click(function(){  // set cam mode to 4
+
+	    ws.send('c4');
+	});
+	$("#cam3").click(function(){  // set cam mode to 3
+
+	    ws.send('c3');
+	});
+	$("#mapsizea").click(function(){  //adjust mapsize 
 	    ws.send('p');
 	
 	});
@@ -398,7 +415,7 @@ body {
 	
 	});
 
-	$("#don").click(function(){
+	$("#don").click(function(){  // junk
 	    ws.send('9');
 
 	});
@@ -411,20 +428,27 @@ body {
 
 	$("#ron").click(function(){
 	    ws.send('4');
-
 	});
-	$("#pic1").click(function(){
+	
+	$("#pic1").click(function(){  // show next pic from folder
 	    ws.send('v');
-
 	});
-	$("#pic2").click(function(){
+	
+	$("#pic2").click(function(){   //show previous pic from folder
 	    ws.send('x');
-
 	});
 
-	$("#thebutton").click(function(){
+	$("#thebutton").click(function(){   //junk, i think
 	    sender();
 	});
+	$("#splus").click(function(){   // increase stepsize
+	    ws.send('+');
+	});
+	
+	$("#sminus").click(function(){   // decrease stepsize
+	    ws.send('-');
+	});
+	
      });
    </script>
 </head>
@@ -432,8 +456,10 @@ body {
 <body>
  <div class="centre" id="main">
   <div id="top">
-  <input type="image" class="pic1" id="pic2" value="PIC-" />
+ <input type="image" class="pic1" id="pic2" value="PIC-" />
+  <input type="image" class="up2" id="cam2" value="CAM2" />
   <input type="image" id="up" value="UP" /<br>
+  <input type="image" class="up2" id="cam3" value="CAM3" />
   <input type="image" class="pic1" id="pic1" value="PIC+" />
   </div>
 
@@ -445,7 +471,9 @@ body {
 
   <div>
   <input type="image" class="stop1" id="allstop" value="STOP X" />
+  <input type="image" class="up2" id="sminus" value="STEPSIZE-" />
   <input type="image" id="down" value="DOWN" />
+  <input type="image" class="up2" id="splus" value="STEPSIZE+" />
   <input type="image" class="stop1" id="allstop2" value="STOP Y" />
   </div>
 
@@ -454,7 +482,7 @@ body {
 
    <input class= "padbutton" type="image" id="short" value="NUDGE" />
    <input class= "padbutton" type="image" id="long" value="MAP STEP" />
-   <input class= "padbutton6" type="image" id="open" value="OPEN GEAR" />
+   <input class= "padbutton" type="image" id="open" value="OPEN GEAR" />
    <input class= "padbutton" type="image" id="map" value="NEW MAP" />
 
    <input class= "padbutton" type="image" id="map2" value="MAP ON/OFF" />
@@ -463,10 +491,10 @@ body {
  <br><input type="text" id="msg" style=" color:white; background-color:#000000; height: 100%; width:60% " />
    <input type="image" id="thebutton" class= "padbutton3" value="SEND" /><br><br>
   <input class= "padbutton4" type="image" id="manual" value="MANUAL" />  
- <input class= "padbutton4" type="image" id="in"  value="PIC FOLDER" />
+ <input class= "padbutton4" type="image" id="picf"  value="PIC FOLDER" />
     <input class= "padbutton" type="image" id="in"  value="IN" />
    <input class= "padbutton" type="image" id="out" value="OUT" />
-  <input class= "padbutton" type="image" id="cam2" value="CAM 2" />
+  <input class= "padbutton" type="image" id="cam1" value="CAM 1" />
 
 
 
@@ -479,9 +507,11 @@ body {
 </div>
     </div>
 <div>
-<canvas id="myCanvas" width="544" height="544" style="border:1px solid#ffffff;"></canvas><canvas id="myCanvas" width="544" height="288" style="border:1px solid#000000;"></canvas>
+
+
+<canvas id="myCanvas" width="544" height="544" style="border:1px solid#000000;"></canvas>
+
 </div>
-(c) Copyright 2014   C. Robert Barnett III
 
 </body>
 </html>
