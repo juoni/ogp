@@ -303,6 +303,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
         if message =='b':           ## MAPPER 
             print "b"
+            s.write('n')
+            time.sleep(1)
+            self.write_message(s.readline())
             self.write_message("echo: " + message + " map" )        
             m = stepsize
             wsh = tornado.websocket.WebSocketHandler        ## wsh holds some socket info
