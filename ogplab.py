@@ -209,7 +209,6 @@ class so(object):
                 x = x - 1
                 self.x = x
                 elf = self.histo()
-                s.write('s')
                 wsh.write_message(wsh2, "m" )
                         
                 self.countdownA = countdownA
@@ -508,6 +507,3 @@ if __name__ == '__main__'  :
     foo.run()
 else:
    pass
-
-
-
