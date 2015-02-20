@@ -1,0 +1,337 @@
+// OGP -- ARDUINO SIDE V2.0
+
+// for use with any serial device over usb
+// this config handles:  2 SERVOS, 1 DC MOTOR and now featuring one LSM303dlhc compass/accelerometer.
+
+// watch out!! if you lose contact with the rpi in mid-movement, 
+//your motors will run free until you pull the plug! 
+
+#include <Servo.h> 
+#include <AFMotor.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_LSM303_U.h>
+
+char val = 'z';         // variable to receive data from the serial port 
+
+Adafruit_LSM303_Mag_Unified mag = Adafruit_LSM303_Mag_Unified(12345);
+Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(54321);
+
+
+Servo myservo;         // create servo objects
+Servo myservo2; 
+AF_DCMotor motor(2);     //create dc motor object
+
+float Pi = 3.14159;
+float heading = 0;
+float val2 = 0;
+float inclination = 0;
+
+int ms = 200;
+int nms = 100;
+
+int i = 0;
+
+void displaySensor(){
+      delay(500);
+     /* Get a new sensor event */
+    sensors_event_t event; 
+    mag.getEvent(&event);
+    delay(500);
+    /* Display the results (magnetic vector values are in micro-Tesla (uT)) */
+    // Calculate the angle of the vector y,x
+    heading = (atan2(event.magnetic.y,event.magnetic.x) * 180) / Pi;
+    // Normalize to 0-360
+    if (heading < 0)
+    {
+      heading = 360 + heading;
+      
+    }
+    //Header parsing c = compas heading
+    Serial.print("c_");
+    Serial.println(heading);
+    Serial.print(" ");
+    accel.getEvent(&event);
+    Serial.print("i_"); 
+    float inclination = event.acceleration.z ;
+    inclination = 10 - inclination;
+    inclination = inclination * 9;
+  
+    Serial.print(inclination);
+    Serial.print("   ");
+    val = 'z';
+}
+
+void gotoY(){
+    //float obtainSensor();
+    delay (1000);
+    sensors_event_t event; 
+    mag.getEvent(&event);
+    heading = (atan2(event.magnetic.y,event.magnetic.x) * 180) / Pi;
+    if (heading < 0)
+    {heading = 360 + heading;}
+    accel.getEvent(&event);
+    float inclination = event.acceleration.z ;
+    inclination = 10 - inclination;
+    inclination = inclination * 9;
+
+
+if (val2 < 82){
+    if (inclination < (val2 - 1))
+      {
+      myservo2.write(85); delay(400); myservo2.write(90);  //up
+      float getY = val2;
+      }
+    if (inclination > (val2 + 1))
+      {
+      myservo2.write(95); delay(400); myservo2.write(90);  //down
+      float getY = val2;
+      }
+}
+      
+    if (val2 > 103){
+      if (val2 < 459){
+      float val3 = val2 - 100;
+      
+    if (heading < (val3 - 1))
+      {
+      myservo.write(85); delay(400); myservo.write(90);  //clockwise
+      float getX = val3;
+      }
+    if (heading > (val3 + 1))
+      {
+      myservo.write(95); delay(400); myservo.write(90);  //counterclockwise
+      float getX = val3;
+      }
+      }
+    }
+    if (val2 > 1000){
+      ms = val2 - 1000;
+    }
+    
+    if (val2 > 2000){
+      nms = val2 - 2000;
+    }
+
+
+}
+
+void setup() 
+{ 
+  myservo.attach(9);         // attaches the servo on pin 9 to the servo object 
+  myservo2.attach(10);       
+
+  motor.setSpeed(0);         // just to make sure the motor is stopped
+  motor.run(RELEASE);
+
+  Serial.begin(9600);    // start serial communication at 9600bps 
+
+  mag.enableAutoRange(true);
+
+  if(!mag.begin())
+  {
+    /* There was a problem detecting the LSM303 ... check your connections */
+    Serial.println("Ooops, no LSM303 detected ... Check your wiring!A");
+    myservo.write(90);
+    myservo2.write(90);
+
+    while(1);
+  }
+
+  /* Initialise the sensor */
+  if(!accel.begin())
+  {
+    /* There was a problem detecting the ADXL345 ... check your connections */
+    Serial.println("Ooops, no LSM303 detected ... Check your wiring!B");
+    myservo.write(90);
+    myservo2.write(90);
+    while(1);
+  }
+
+}
+
+
+void loop() { 
+
+  if( Serial.available() )       // if data is available to read 
+  { 
+    val = Serial.read();         // read it and store it in 'val'   
+    val2 = Serial.parseFloat();   // filters out numbers
+  }
+
+
+  switch( val )        //switch handles incoming signal
+  {
+    case 'w':                         //  nudging directionals -- up
+    myservo2.write(85);
+    i = 0; 
+    while (i <  nms){ 
+    i=i+1; 
+    delay(1);
+    }
+    val = 'z';
+    break;
+    
+    case 'a':                         //  nudging directionals -- down
+    myservo2.write(97);
+    i = 0; 
+    while (i <  nms){ 
+    i=i+1; 
+    delay(1);
+    }
+    val = 'z';
+    break;
+    
+    case 'q':                         //  nudging directionals -- left
+    myservo.write(85);
+    i = 0; 
+    while (i <  nms){ 
+    i=i+1; 
+    delay(1);
+    }
+    val = 'z';
+    break;
+    
+    case 's':                         //  nudging directionals -- right
+    myservo.write(95);
+    i = 0; 
+    while (i <  nms){ 
+    i=i+1; 
+    delay(1);
+    }
+    val = 'z';
+    break;
+    
+    case 'o':                         //  mapping directionals  -- up
+    myservo2.write(85);
+    i = 0; 
+    while (i <  ms){ 
+    i=i+1; 
+    delay(1);
+    }
+    val = 'z';
+    break;
+    
+    case 'l':                          //  mapping directionals  -- down
+    myservo2.write(95);
+    i = 0; 
+    while (i <  ms){ 
+    i=i+1; 
+    delay(1);
+    }
+    val = 'z';
+    break;
+    
+    case 'k':                          //  mapping directionals  -- left
+    myservo.write(85);
+    i = 0; 
+    while (i <  ms){ 
+    i=i+1; 
+    delay(1);
+    }
+    val = 'z';
+    break;
+    
+    case 'p':                          //  mapping directionals  -- right
+    myservo.write(97);
+    i = 0; 
+    while (i <  ms){ 
+    i=i+1; 
+    delay(1);
+    }
+    val = 'z';
+    break;
+    
+   case 'x':            // x needs to precede coordinate info and stepsize info
+   if (val2 >10){
+    gotoY();}
+    break;         
+
+  case 'f':            
+    motor.setSpeed(255);
+    motor.run(FORWARD);
+    //Serial.println("focus 1");
+    break;       
+
+  case 'c':    
+    motor.run(RELEASE);
+    //Serial.println("focus stop");
+    break;               
+
+  case 't':    
+    motor.setSpeed(255);
+    motor.run(BACKWARD);
+    break;
+
+
+  case '1':                         //  directionals  X
+    myservo.write(85);    
+    //Serial.println("1 - CounterClockwise Fast");
+    break; 
+
+  case '2':                   
+    myservo.write(83);    
+    //Serial.println("2 - CounterClockwise");
+    break;
+
+  case '3':          
+    myservo.write(90);
+    //Serial.println("3 - Stop x");
+    break;
+
+  case '4':
+    myservo.write(93);
+    //Serial.println("8 - Clockwise");
+    break;
+
+  case '5':
+    myservo.write(96);
+    //Serial.println("9 - Clockwise Fast");
+    break;        
+
+  case '6':        
+    myservo2.write(85); 
+    //Serial.println("7 - down fast");
+    break;     
+
+  case '7':      
+    myservo2.write(83); 
+    //Serial.println("7 - down");
+    break;       
+
+  case '8':
+    myservo2.write(90);
+    break;
+
+  case '9':
+    myservo2.write(95);
+    //Serial.println("9 - up");
+    break;
+
+  case '0':
+    myservo2.write(97);
+    //Serial.println("0 - up fast");
+    break;
+
+  case 'n':
+    myservo2.write(90);
+    myservo.write(90);
+    displaySensor();
+    //Serial.println("all stop");
+    break;
+
+
+  default :        
+    myservo.write(90);
+    myservo2.write(90);
+
+    
+    
+  }
+  
+  
+
+} 
+
+
+// (c) Copyright 2015   C. Robert Barnett III
